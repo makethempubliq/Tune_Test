@@ -10,6 +10,7 @@ public class SoundPlayerGUI extends JFrame {
     private String[] notes = {"도", "레", "미", "파", "솔", "라", "시"};
     private String correctNote;
     ButtonGroup group = new ButtonGroup(); //라디오 버튼 저장 그룹
+    int g_empty = 1;	//group 비었는지 확인 위함
 
     public SoundPlayerGUI() {
         setTitle("청음 훈련");
@@ -22,26 +23,29 @@ public class SoundPlayerGUI extends JFrame {
         playButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // 도레미파솔라시 중에서 네 개의 랜덤한 음정 선택
-                ArrayList<String> notesList = new ArrayList<>(Arrays.asList(notes));
-                Collections.shuffle(notesList);
-                ArrayList<String> selectedNotes = new ArrayList<>(notesList.subList(0, 4));
-                
-                correctNote = selectedNotes.get(0); // 정답 노트 설정
-                Collections.shuffle(selectedNotes); // 섞음
+            	if(g_empty == 1) {	//제출 전이라면 같은 음 반복 출력 위함	난이도 높으려면 음 출력까지 묶어서 반복 재생 금지 가능
+            		g_empty = 0;
+            		
+            		// 도레미파솔라시 중에서 네 개의 랜덤한 음정 선택
+            		ArrayList<String> notesList = new ArrayList<>(Arrays.asList(notes));
+            		Collections.shuffle(notesList);
+            		ArrayList<String> selectedNotes = new ArrayList<>(notesList.subList(0, 4));
+            		
+            		correctNote = selectedNotes.get(0); // 정답 노트 설정
+            		Collections.shuffle(selectedNotes); // 섞음
                 
 
-                // 라디오 버튼 생성
-                for (String note : selectedNotes) {
-                    JRadioButton radioButton = new JRadioButton(note);
-
-                    group.add(radioButton);
-                    panel.add(radioButton);
-                }
-                //변경된 점 적용
-                panel.revalidate();
-                panel.repaint();
-                
+            		// 라디오 버튼 생성
+            		for (String note : selectedNotes) {
+            			JRadioButton radioButton = new JRadioButton(note);
+            			
+            			group.add(radioButton);
+            			panel.add(radioButton);
+            		}
+            		//변경된 점 적용
+            		panel.revalidate();
+            		panel.repaint();
+            	}
                 //정답의 파일 재생
                 SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
                     @Override
@@ -85,6 +89,7 @@ public class SoundPlayerGUI extends JFrame {
                 }
                 group.clearSelection();
                 
+                g_empty = 1;
                 panel.revalidate(); // 패널을 다시 그립니다.
                 panel.repaint();
             }
