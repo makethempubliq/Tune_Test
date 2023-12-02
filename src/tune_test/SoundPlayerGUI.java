@@ -9,21 +9,44 @@ import java.util.*;
 public class SoundPlayerGUI extends JFrame {
     private String[] notes = {"도", "레", "미", "파", "솔", "라", "시"};
     private String correctNote;
+    ButtonGroup group = new ButtonGroup(); //라디오 버튼 저장 그룹
 
     public SoundPlayerGUI() {
         setTitle("청음 훈련");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         Container c = getContentPane();
         c.setLayout(new GridBagLayout());
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0)); // 음정 버튼 간격 조정
 
         JButton playButton = new JButton("재생");
         playButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                // 도레미파솔라시 중에서 네 개의 랜덤한 음정 선택
+                ArrayList<String> notesList = new ArrayList<>(Arrays.asList(notes));
+                Collections.shuffle(notesList);
+                ArrayList<String> selectedNotes = new ArrayList<>(notesList.subList(0, 4));
+                
+                correctNote = selectedNotes.get(0); // 정답 노트 설정
+                Collections.shuffle(selectedNotes); // 섞음
+                
+
+                // 라디오 버튼 생성
+                for (String note : selectedNotes) {
+                    JRadioButton radioButton = new JRadioButton(note);
+
+                    group.add(radioButton);
+                    panel.add(radioButton);
+                }
+                //변경된 점 적용
+                panel.revalidate();
+                panel.repaint();
+                
+                //정답의 파일 재생
                 SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
                     @Override
                     protected Void doInBackground() throws Exception {
-                        SoundPlayer.playSound("/sounds/soundsample.wav");
+                        SoundPlayer.playSound("/sounds/" + correctNote +".wav");
                         return null;
                     }
                 };
@@ -40,29 +63,7 @@ public class SoundPlayerGUI extends JFrame {
         gbc.anchor = GridBagConstraints.CENTER;
         c.add(playButton, gbc);
 
-        // 도레미파솔라시 중에서 네 개의 랜덤한 음정 선택 (시가 무조건 포함)
-        ArrayList<String> notesList = new ArrayList<>(Arrays.asList(notes));
-        notesList.remove("시"); // 시를 미리 빼고 세 개의 음을 선택
-        Collections.shuffle(notesList);
-        ArrayList<String> selectedNotes = new ArrayList<>(notesList.subList(0, 3));
-
-        // 정답 음 추가 (시)
-        selectedNotes.add("시");
-        Collections.shuffle(selectedNotes); // 섞음
-
-        JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0)); // 음정 버튼 간격 조정
-        ButtonGroup group = new ButtonGroup();
-
-        // 라디오 버튼 생성
-        for (String note : selectedNotes) {
-            JRadioButton radioButton = new JRadioButton(note);
-            if (note.equals("시")) {
-                correctNote = note; // 정답 노트 설정
-            }
-            group.add(radioButton);
-            panel.add(radioButton);
-        }
-
+        
         gbc.gridy = 1;
         c.add(panel, gbc);
 
@@ -72,6 +73,20 @@ public class SoundPlayerGUI extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 // 정답 체크 및 점수 증가
                 checkAnswer(group);
+                
+                //제출 완료시 라디오버튼 제거
+                Enumeration<AbstractButton> buttons = group.getElements();
+                while (buttons.hasMoreElements()) {
+                    AbstractButton button = buttons.nextElement();
+                    if (button instanceof JRadioButton) {
+                        JRadioButton radioButton = (JRadioButton) button;
+                        panel.remove(radioButton); // 패널에서 라디오 버튼 제거
+                    }
+                }
+                group.clearSelection();
+                
+                panel.revalidate(); // 패널을 다시 그립니다.
+                panel.repaint();
             }
         });
 
@@ -94,6 +109,7 @@ public class SoundPlayerGUI extends JFrame {
                 } else {
                     JOptionPane.showMessageDialog(null, "틀렸습니다.");
                 }
+                
                 return; // 정답을 찾았으니 반복문 종료
             }
         }
