@@ -4,51 +4,108 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.*;
 
 public class SoundPlayerGUI extends JFrame {
+    private String[] notes = {"도", "레", "미", "파", "솔", "라", "시"};
+    private String correctNote;
+
     public SoundPlayerGUI() {
         setTitle("청음 훈련");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLayout(new FlowLayout());
+        Container c = getContentPane();
+        c.setLayout(new GridBagLayout());
 
         JButton playButton = new JButton("재생");
         playButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                SoundPlayer.playSound("C:\\Users\\Shin\\eclipse-workspace\\sound_test\\resources\\sounds\\01 BASS.wav"); // 여기에 사운드 파일 경로 입력
+                SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
+                    @Override
+                    protected Void doInBackground() throws Exception {
+                        SoundPlayer.playSound("/sounds/soundsample.wav");
+                        return null;
+                    }
+                };
+                worker.execute();
             }
         });
 
-        // 음정 선택을 위한 라디오 버튼 추가
-        JRadioButton option1 = new JRadioButton("음정 1");
-        JRadioButton option2 = new JRadioButton("음정 2");
-        JRadioButton option3 = new JRadioButton("음정 3");
-        JRadioButton option4 = new JRadioButton("음정 4");
-        
-        // ... 필요한 만큼 라디오 버튼 추가
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(50, 50, 50, 50); // 간격 조정
 
+        // 재생 버튼 추가
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.CENTER;
+        c.add(playButton, gbc);
+
+        // 도레미파솔라시 중에서 네 개의 랜덤한 음정 선택 (시가 무조건 포함)
+        ArrayList<String> notesList = new ArrayList<>(Arrays.asList(notes));
+        notesList.remove("시"); // 시를 미리 빼고 세 개의 음을 선택
+        Collections.shuffle(notesList);
+        ArrayList<String> selectedNotes = new ArrayList<>(notesList.subList(0, 3));
+
+        // 정답 음 추가 (시)
+        selectedNotes.add("시");
+        Collections.shuffle(selectedNotes); // 섞음
+
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0)); // 음정 버튼 간격 조정
         ButtonGroup group = new ButtonGroup();
-        group.add(option1);
-        group.add(option2);
-        group.add(option3);
-        group.add(option4);
-        // ... 다른 라디오 버튼 추가
 
-        add(playButton);
-        add(option1);
-        add(option2);
-        add(option3);
-        add(option4);
-        // ... 다른 라디오 버튼 추가
-        setSize(500, 900);
-        pack();
+        // 라디오 버튼 생성
+        for (String note : selectedNotes) {
+            JRadioButton radioButton = new JRadioButton(note);
+            if (note.equals("시")) {
+                correctNote = note; // 정답 노트 설정
+            }
+            group.add(radioButton);
+            panel.add(radioButton);
+        }
+
+        gbc.gridy = 1;
+        c.add(panel, gbc);
+
+        JButton submitButton = new JButton("제출");
+        submitButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // 정답 체크 및 점수 증가
+                checkAnswer(group);
+            }
+        });
+
+        gbc.gridy = 2;
+        c.add(submitButton, gbc);
+        
+        setSize(500, 400);
         setLocationRelativeTo(null);
     }
+    private void checkAnswer(ButtonGroup group) {
+        // 선택된 라디오 버튼 가져오기
+        for (Enumeration<AbstractButton> buttons = group.getElements(); buttons.hasMoreElements();) {
+            AbstractButton button = buttons.nextElement();
+            if (button.isSelected()) {
+                // 선택된 버튼이 정답인지 확인
+                if (button.getText().equals(correctNote)) {
+                    JOptionPane.showMessageDialog(null, "정답입니다!");
+                    // 정답인 경우 점수 증가
+                    // score++;
+                } else {
+                    JOptionPane.showMessageDialog(null, "틀렸습니다.");
+                }
+                return; // 정답을 찾았으니 반복문 종료
+            }
+        }
+        JOptionPane.showMessageDialog(null, "선택된 답이 없습니다.");
+    }
+    
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                new SoundPlayerGUI().setVisible(true);
+                SoundPlayerGUI soundPlayerGUI = new SoundPlayerGUI();
+                soundPlayerGUI.setVisible(true);
             }
         });
     }
