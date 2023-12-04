@@ -9,6 +9,9 @@ import java.util.*;
 public class SoundPlayerGUI extends JFrame {
     private String[] notes = {"도", "레", "미", "파", "솔", "라", "시"};
     private String correctNote;
+    private String[] correctAnswers = new String[10]; // 배열로 10개의 문제의 정답 보관
+    private int currentQuestion = 0; // 현재 문제 번호
+    private int score = 0; // 점수
     ButtonGroup group = new ButtonGroup(); //라디오 버튼 저장 그룹
     int g_empty = 1;	//group 비었는지 확인 위함
 
@@ -75,23 +78,31 @@ public class SoundPlayerGUI extends JFrame {
         submitButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // 정답 체크 및 점수 증가
                 checkAnswer(group);
-                
-                //제출 완료시 라디오버튼 제거
                 Enumeration<AbstractButton> buttons = group.getElements();
                 while (buttons.hasMoreElements()) {
                     AbstractButton button = buttons.nextElement();
                     if (button instanceof JRadioButton) {
                         JRadioButton radioButton = (JRadioButton) button;
-                        panel.remove(radioButton); // 패널에서 라디오 버튼 제거
+                        panel.remove(radioButton);
                     }
                 }
                 group.clearSelection();
-                
+
                 g_empty = 1;
-                panel.revalidate(); // 패널을 다시 그립니다.
+                panel.revalidate();
                 panel.repaint();
+
+                currentQuestion++; // 다음 문제로 이동
+                if (currentQuestion >= 10) {
+                    // 모든 문제를 푼 후 점수 표시
+                    JOptionPane.showMessageDialog(null, "점수: " + score + "/10");
+                    currentQuestion = 0; // 문제 초기화
+                    score = 0; // 점수 초기화
+                    setVisible(false); // 현재 창을 숨김
+                    dispose(); // 현재 창을 메모리에서 제거
+                    new DifficultySelector(); // 이렇게 하면 DifficultySelector를 다시 실행함
+                }
             }
         });
 
@@ -110,7 +121,7 @@ public class SoundPlayerGUI extends JFrame {
                 if (button.getText().equals(correctNote)) {
                     JOptionPane.showMessageDialog(null, "정답입니다!");
                     // 정답인 경우 점수 증가
-                    // score++;
+                    score++;
                 } else {
                     JOptionPane.showMessageDialog(null, "틀렸습니다.");
                 }
@@ -122,12 +133,5 @@ public class SoundPlayerGUI extends JFrame {
     }
     
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                SoundPlayerGUI soundPlayerGUI = new SoundPlayerGUI();
-                soundPlayerGUI.setVisible(true);
-            }
-        });
-    }
+
 }
