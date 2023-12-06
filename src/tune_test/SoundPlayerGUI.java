@@ -4,7 +4,14 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.net.*;
 import java.util.*;
+
 
 public class SoundPlayerGUI extends JFrame {
     private String[] notes = {"도", "레", "미", "파", "솔", "라", "시"};
@@ -15,40 +22,47 @@ public class SoundPlayerGUI extends JFrame {
     ButtonGroup group = new ButtonGroup(); //라디오 버튼 저장 그룹
     int g_empty = 1;	//group 비었는지 확인 위함
 
+    BufferedWriter out = null;
+    BufferedReader in = null;
+    Socket socket = null;
+    
     public SoundPlayerGUI() {
-        setTitle("청음 훈련");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        Container c = getContentPane();
-        c.setLayout(new GridBagLayout());
-        JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0)); // 음정 버튼 간격 조정
+    	
+        
+       
+       	setTitle("청음 훈련");
+           setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+           Container c = getContentPane();
+           c.setLayout(new GridBagLayout());
+           JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0)); // 음정 버튼 간격 조정
 
-        JButton playButton = new JButton("재생");
-        playButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-            	if(g_empty == 1) {	//제출 전이라면 같은 음 반복 출력 위함	난이도 높으려면 음 출력까지 묶어서 반복 재생 금지 가능
-            		g_empty = 0;
-            		
-            		// 도레미파솔라시 중에서 네 개의 랜덤한 음정 선택
-            		ArrayList<String> notesList = new ArrayList<>(Arrays.asList(notes));
-            		Collections.shuffle(notesList);
-            		ArrayList<String> selectedNotes = new ArrayList<>(notesList.subList(0, 4));
-            		
-            		correctNote = selectedNotes.get(0); // 정답 노트 설정
-            		Collections.shuffle(selectedNotes); // 섞음
-                
+           JButton playButton = new JButton("재생");
+           playButton.addActionListener(new ActionListener() {
+               @Override
+               public void actionPerformed(ActionEvent e) {
+               	if(g_empty == 1) {	//제출 전이라면 같은 음 반복 출력 위함	난이도 높으려면 음 출력까지 묶어서 반복 재생 금지 가능
+               		g_empty = 0;
+                		
+               		// 도레미파솔라시 중에서 네 개의 랜덤한 음정 선택
+               		ArrayList<String> notesList = new ArrayList<>(Arrays.asList(notes));
+               		Collections.shuffle(notesList);
+               		ArrayList<String> selectedNotes = new ArrayList<>(notesList.subList(0, 4));
+                		
+               		correctNote = selectedNotes.get(0); // 정답 노트 설정
+               		Collections.shuffle(selectedNotes); // 섞음
+                    
 
-            		// 라디오 버튼 생성
-            		for (String note : selectedNotes) {
-            			JRadioButton radioButton = new JRadioButton(note);
-            			
-            			group.add(radioButton);
-            			panel.add(radioButton);
-            		}
-            		//변경된 점 적용
-            		panel.revalidate();
-            		panel.repaint();
-            	}
+               		// 라디오 버튼 생성
+               		for (String note : selectedNotes) {
+               			JRadioButton radioButton = new JRadioButton(note);
+               			
+               			group.add(radioButton);
+               			panel.add(radioButton);
+               		}
+               		//변경된 점 적용
+               		panel.revalidate();
+               		panel.repaint();
+               	}
                 //정답의 파일 재생
                 SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
                     @Override
@@ -70,7 +84,7 @@ public class SoundPlayerGUI extends JFrame {
         gbc.anchor = GridBagConstraints.CENTER;
         c.add(playButton, gbc);
 
-        
+            
         gbc.gridy = 1;
         c.add(panel, gbc);
 
@@ -94,9 +108,44 @@ public class SoundPlayerGUI extends JFrame {
                 panel.repaint();
 
                 currentQuestion++; // 다음 문제로 이동
-                if (currentQuestion >= 10) {
+                if (currentQuestion >= 2) {
                     // 모든 문제를 푼 후 점수 표시
                     JOptionPane.showMessageDialog(null, "점수: " + score + "/10");
+                        
+                    try {
+                    	socket = new Socket("localhost", 9999);
+                       	in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                       	out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+                        
+                        out.write("begin\n");	//서버에 점수 전송
+    					out.flush();
+    					out.write(score + "\n");
+    					out.flush();
+    					
+    					if(score == 0) {
+    						out.write("end\n");
+        					out.flush();        					
+    					}
+    					String mes = null;	
+    					while(mes == null) {
+    						mes = in.readLine(); // 서버로부터 결과 수신
+    					}	
+    					if(mes.equals("first")) {
+    						JOptionPane.showMessageDialog(null, "감격스러운 첫 기록!");
+    					}
+    					else if(mes.equals("high")) {
+    						JOptionPane.showMessageDialog(null, "최고 기록 달성!!!");
+    					}
+                    } catch (IOException err) {
+                    	System.out.println(err.getMessage());
+                    } finally {
+                    	try {
+                    		if(socket != null) socket.close(); // 클라이언트 소켓 닫기
+                    	} catch (IOException err) {
+                    		System.out.println("서버와 채팅 중 오류가 발생했습니다.");
+                    	}
+                    }    
+    				
                     currentQuestion = 0; // 문제 초기화
                     score = 0; // 점수 초기화
                     setVisible(false); // 현재 창을 숨김
@@ -112,6 +161,8 @@ public class SoundPlayerGUI extends JFrame {
         setSize(500, 400);
         setLocationRelativeTo(null);
     }
+        
+
     private void checkAnswer(ButtonGroup group) {
         // 선택된 라디오 버튼 가져오기
         for (Enumeration<AbstractButton> buttons = group.getElements(); buttons.hasMoreElements();) {

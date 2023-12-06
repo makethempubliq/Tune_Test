@@ -2,7 +2,9 @@ package tune_test;
 
 import javax.swing.*;
 import java.awt.*;
-
+import java.io.*;
+import java.net.*;
+import java.util.*;
 
 public class DifficultySelector {
     public DifficultySelector() {
@@ -28,7 +30,10 @@ public class DifficultySelector {
         }
     }
 
+    
     public static void main(String[] args) {
-        new DifficultySelector();
+    	
+    	new DifficultySelector();
+    	
     }
 }
