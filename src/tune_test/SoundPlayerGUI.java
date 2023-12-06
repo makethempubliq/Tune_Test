@@ -121,11 +121,8 @@ public class SoundPlayerGUI extends JFrame {
     					out.flush();
     					out.write(score + "\n");
     					out.flush();
-    					
-    					if(score == 0) {
-    						out.write("end\n");
-        					out.flush();        					
-    					}
+    				        					
+
     					String mes = null;	
     					while(mes == null) {
     						mes = in.readLine(); // 서버로부터 결과 수신
@@ -140,7 +137,11 @@ public class SoundPlayerGUI extends JFrame {
                     	System.out.println(err.getMessage());
                     } finally {
                     	try {
+                    		out.write("fin\n");
+        					out.flush();
                     		if(socket != null) socket.close(); // 클라이언트 소켓 닫기
+                    		setVisible(false); // 현재 창을 숨김
+                            dispose(); // 현재 창을 메모리에서 제거
                     	} catch (IOException err) {
                     		System.out.println("서버와 채팅 중 오류가 발생했습니다.");
                     	}
