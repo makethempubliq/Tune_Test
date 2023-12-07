@@ -117,7 +117,7 @@ public class SoundPlayerGUI_adv extends JFrame {
                        	in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                        	out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
                         
-                        out.write("begin\n");	//서버에 점수 전송
+                        out.write("Adv\n");	//서버에 점수 전송
     					out.flush();
     					out.write(score + "\n");
     					out.flush();
