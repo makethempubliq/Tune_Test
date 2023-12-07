@@ -13,8 +13,8 @@ import java.net.*;
 import java.util.*;
 
 
-public class SoundPlayerGUI extends JFrame {
-    private String[] notes = {"도", "레", "미", "파", "솔", "라", "시"};
+public class SoundPlayerGUI_Interm extends JFrame {
+    private String[] notes = {"Cmaj", "Dmin", "Fmaj", "Gmaj", "Amin", "Emin", "Bdim"};
     private String correctNote;
     private String[] correctAnswers = new String[10]; // 배열로 10개의 문제의 정답 보관
     private int currentQuestion = 0; // 현재 문제 번호
@@ -26,7 +26,10 @@ public class SoundPlayerGUI extends JFrame {
     BufferedReader in = null;
     Socket socket = null;
     
-    public SoundPlayerGUI() {
+    public SoundPlayerGUI_Interm() {
+    	
+        
+       
        	setTitle("청음 훈련");
            setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
            Container c = getContentPane();
@@ -64,7 +67,7 @@ public class SoundPlayerGUI extends JFrame {
                 SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
                     @Override
                     protected Void doInBackground() throws Exception {
-                        SoundPlayer.playSound("/sounds/" + correctNote +".wav");
+                        SoundPlayer.playSound("/sounds/Interm/" + correctNote +".wav");
                         return null;
                     }
                 };

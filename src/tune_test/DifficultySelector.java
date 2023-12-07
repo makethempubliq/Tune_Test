@@ -19,11 +19,13 @@ public class DifficultySelector {
                 break;
             case 1:
                 // 중급 난이도의 실행 코드
-                // 중급 난이도에 해당하는 코드 추가
+            	SoundPlayerGUI_Interm interm = new SoundPlayerGUI_Interm();
+            	interm.setVisible(true);
                 break;
             case 2:
                 // 고급 난이도의 실행 코드
-                // 고급 난이도에 해당하는 코드 추가
+            	SoundPlayerGUI_adv adv = new SoundPlayerGUI_adv();
+            	adv.setVisible(true);
                 break;
             case 3:
             	Socket socket = null;
